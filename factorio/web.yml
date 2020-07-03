@@ -38,7 +38,8 @@ spec:
         - web
         ports:
         - containerPort: 34197
-          name: udp-alt
+          name: udp
+          protocol: UDP
         volumeMounts:
         - name: factorio-saves
           mountPath: "/factorio"

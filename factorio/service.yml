@@ -8,11 +8,10 @@
         app: "factorio-server"
         env: "production"
     spec:
-      type: NodePort
+      type: LoadBalancer
       ports:
       - port: 34197
         name: udp
-        nodePort: 30565
         protocol: UDP
       selector:
         name: web
