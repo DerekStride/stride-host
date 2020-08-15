@@ -1,0 +1,67 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  labels:
+    name: web
+    app: "factorio-server"
+    env: "production"
+spec:
+  progressDeadlineSeconds: 120 
+  replicas: 1
+  selector:
+    matchLabels:
+      name: web
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: web
+        app: "factorio-server"
+        env: "production"
+    spec:
+      automountServiceAccountToken: true
+      nodeSelector:
+       role: game-server
+      containers:
+      - name: web
+        image: gcr.io/stride-link/factorio:1c4a02e80a310f71023620e29c75dd5ada76084b6b4dc706563010d84855aa19
+        resources:
+          requests:
+            cpu: 1
+            memory: 3Gi
+          limits:
+            memory: 3Gi
+        args:
+        - web
+        ports:
+        - containerPort: 34197
+          name: udp
+          protocol: UDP
+        volumeMounts:
+        - name: factorio-saves
+          mountPath: "/factorio"
+          readOnly: false
+        env:
+        - name: INSTANCE_NAME
+          value: "dereks-factorio-server"
+        - name: INSTANCE_DESC
+          value: "Part of the stride-link network."
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: NODE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: PORT
+          value: '34197'
+        - name: 'DEPLOY_STAGE'
+          value: production
+      volumes:
+      - name: factorio-saves
+        persistentVolumeClaim:
+          claimName: factorio-saves-claim
