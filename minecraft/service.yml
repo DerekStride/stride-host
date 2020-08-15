@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Service
+metadata:  
+  name: web
+spec:
+  selector:    
+    app: minecraft-server
+  type: NodePort
+  ports:  
+  - name: tcp
+    port: 8379
+    targetPort: 25565
+    nodePort: 31379
+    protocol: TCP

@@ -1,0 +1,93 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  labels:
+    name: web
+    app: "minecraft-server"
+    env: "production"
+spec:
+  progressDeadlineSeconds: 120 
+  replicas: 1
+  selector:
+    matchLabels:
+      name: web
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: web
+        app: "minecraft-server"
+        env: "production"
+    spec:
+      automountServiceAccountToken: true
+      nodeSelector:
+        role: game-server
+      containers:
+      - name: web
+        image: gcr.io/stride-link/minecraft:8396ada0c3a1f67caf337a663988f7d4b0422f2e70daa4c4685a7bd4674c7ad5
+        resources:
+          requests:
+            cpu: 1
+            memory: 3Gi
+          limits:
+            memory: 3Gi
+        ports:
+        - containerPort: 25565
+          name: tcp
+          protocol: TCP
+        volumeMounts:
+        - name: minecraft-saves
+          mountPath: "/data"
+          readOnly: false
+        env:
+        - name: EULA
+          value: 'TRUE'
+        - name: MODE
+          value: survival
+        - name: MOTD
+          value: gwyl say's poggies
+        - name: TYPE
+          value: FORGE
+        - name: VERSION
+          value: '1.15.2'
+        - name: ALLOW_FLIGHT
+          value: 'FALSE'
+        - name: INSTANCE_NAME
+          value: "gwyls-minecraft-server"
+        - name: INSTANCE_DESC
+          value: "Part of the stride-link network."
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: NODE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: PORT
+          value: '25565'
+        - name: 'DEPLOY_STAGE'
+          value: production
+        readinessProbe:
+          exec:
+            command:
+            - mc-monitor
+            - status
+            - localhost:25565
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        livenessProbe:
+          exec:
+            command:
+            - mc-monitor
+            - status
+            - localhost:25565
+          initialDelaySeconds: 30
+          periodSeconds: 30
+      volumes:
+      - name: minecraft-saves
+        persistentVolumeClaim:
+          claimName: minecraft-saves-claim
