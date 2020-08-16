@@ -49,12 +49,12 @@ spec:
           value: survival
         - name: MOTD
           value: gwyl say's poggies
-        - name: TYPE
-          value: FORGE
-        - name: FORGEVERSION
-          value: '31.2.35'
+        # - name: TYPE
+        #   value: FORGE
+        # - name: FORGEVERSION
+        #   value: '31.2.35'
         - name: VERSION
-          value: '1.15.2'
+          value: '1.16.2'
         - name: ALLOW_FLIGHT
           value: 'FALSE'
         - name: INSTANCE_NAME
@@ -81,16 +81,16 @@ spec:
             - mc-monitor
             - status
             - localhost:25565
-          initialDelaySeconds: 300
-          periodSeconds: 120
+          initialDelaySeconds: 120
+          periodSeconds: 30
         livenessProbe:
           exec:
             command:
             - mc-monitor
             - status
             - localhost:25565
-          initialDelaySeconds: 600
-          periodSeconds: 600
+          initialDelaySeconds: 300
+          periodSeconds: 60
       volumes:
       - name: minecraft-saves
         persistentVolumeClaim:
