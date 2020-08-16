@@ -81,7 +81,7 @@ spec:
             - mc-monitor
             - status
             - localhost:25565
-          initialDelaySeconds: 30
+          initialDelaySeconds: 300
           periodSeconds: 30
         livenessProbe:
           exec:
