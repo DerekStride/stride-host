@@ -49,16 +49,16 @@ spec:
           value: survival
         - name: MOTD
           value: gwyl say's poggies
-        # - name: TYPE
-        #   value: FORGE
+        - name: TYPE
+          value: FABRIC
         # - name: FORGEVERSION
         #   value: '31.2.35'
-        - name: VERSION
-          value: '1.16.2'
+        # - name: VERSION
+        #   value: '1.16.2'
         - name: ALLOW_FLIGHT
           value: 'FALSE'
         - name: INSTANCE_NAME
-          value: "gwyls-minecraft-server"
+          value: "dereks-minecraft-server"
         - name: INSTANCE_DESC
           value: "Part of the stride-link network."
         - name: MEMORY
