@@ -12,7 +12,7 @@ serve: prune
 		-e SNOOPER_ENABLED=false \
 		-e SPAWN_PROTECTION=50 \
 		-e TYPE=FABRIC \
-		-e MODRINTH_PROJECTS=lithium,phosphor,fabric-api,cloth-config \
+		-e MODRINTH_PROJECTS=lithium,phosphor,chunky,fabric-api,cloth-config \
 		-e MODS_FILE=/extras/mods.txt \
 		-e DATAPACKS_FILE=/extras/datapacks.txt \
 		-e MAX_MEMORY=5G \
