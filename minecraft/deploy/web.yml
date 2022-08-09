@@ -1,97 +1,95 @@
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: web
   labels:
-    name: web
-    app: "minecraft-server"
-    env: "production"
+    app: mc-lutova
+  name: mc-lutova
 spec:
-  progressDeadlineSeconds: 120 
   replicas: 1
+  serviceName: mc-lutova
   selector:
     matchLabels:
-      name: web
-  strategy:
-    type: Recreate
+      app: mc-lutova
   template:
     metadata:
       labels:
-        name: web
-        app: "minecraft-server"
-        env: "production"
+        app: mc-lutova
     spec:
-      automountServiceAccountToken: true
-      nodeSelector:
-        role: game-server
       containers:
-      - name: web
-        image: gcr.io/stride-link/minecraft:8396ada0c3a1f67caf337a663988f7d4b0422f2e70daa4c4685a7bd4674c7ad5
+        - name: mc
+          image: itzg/minecraft-server
+          env:
+            - name: EULA
+              value: "TRUE"
+            - name: VERSION
+              value: "1.9.1"
+            - name: SERVER_NAME
+              value: "Lutova"
+            - name: DIFFICULTY
+              value: "normal"
+            - name: OPS
+              value: "ugerest"
+            - name: MAX_WORLD_SIZE
+              value: "10000"
+            - name: SNOOPER_ENABLED
+              value: "false"
+            - name: SPAWN_PROTECTION
+              value: "50"
+            - name: TYPE
+              value: "FABRIC"
+            - name: MODRINTH_PROJECTS
+              value: "lithium,phosphor,chunky,fabric-api,cloth-config"
+            - name: MODS_FILE
+              value: "extras/mods.txt"
+            - name: DATAPACKS_FILE
+              value: "extras/datapacks.txt"
+            - name: MAX_MEMORY
+              value: "5G"
+            - name: SYNC_SKIP_NEWER_IN_DESTINATION
+              value: "false"
+          volumeMounts:
+            - mountPath: /data
+              name: data
+        - name: backup
+          image: mc-backup
+          imagePullPolicy: Never
+          securityContext:
+            runAsUser: 1000
+          env:
+            - name: BACKUP_INTERVAL
+              value: "6h"
+            - name: INITIAL_DELAY
+              value: "300"
+            - name: PRUNE_BACKUPS_DAYS
+              value: "7"
+          volumeMounts:
+            - mountPath: /data
+              name: data
+              readOnly: true
+            - mountPath: /backups
+              name: backups
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: data
+        - name: backups
+          persistentVolumeClaim:
+            claimName: backups
+  volumeClaimTemplates:
+    - metadata:
+      name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
         resources:
           requests:
-            cpu: 1
-            memory: 4Gi
-          limits:
-            memory: 4Gi
-        ports:
-        - containerPort: 25565
-          name: tcp
-          protocol: TCP
-        volumeMounts:
-        - name: minecraft-saves
-          mountPath: "/data"
-          readOnly: false
-        env:
-        - name: EULA
-          value: 'TRUE'
-        - name: MODE
-          value: survival
-        - name: MOTD
-          value: gwyl say's poggies
-        - name: TYPE
-          value: FABRIC
-        # - name: FORGEVERSION
-        #   value: '31.2.35'
-        # - name: VERSION
-        #   value: '1.16.2'
-        - name: ALLOW_FLIGHT
-          value: 'FALSE'
-        - name: INSTANCE_NAME
-          value: "dereks-minecraft-server"
-        - name: INSTANCE_DESC
-          value: "Part of the stride-link network."
-        - name: MEMORY
-          value: "4G"
-        - name: NODE_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
-        - name: NODE_IP
-          valueFrom:
-            fieldRef:
-              fieldPath: status.hostIP
-        - name: PORT
-          value: '25565'
-        - name: 'DEPLOY_STAGE'
-          value: production
-        readinessProbe:
-          exec:
-            command:
-            - mc-monitor
-            - status
-            - localhost:25565
-          initialDelaySeconds: 120
-          periodSeconds: 30
-        livenessProbe:
-          exec:
-            command:
-            - mc-monitor
-            - status
-            - localhost:25565
-          initialDelaySeconds: 300
-          periodSeconds: 60
-      volumes:
-      - name: minecraft-saves
-        persistentVolumeClaim:
-          claimName: minecraft-saves-claim
+            storage: 1Gi
+    - metadata:
+      name: backups
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 50Gi
