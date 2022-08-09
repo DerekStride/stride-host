@@ -1,0 +1,80 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: mc-lutova
+  name: mc-lutova
+spec:
+  replicas: 1
+  serviceName: mc-lutova
+  selector:
+    matchLabels:
+      app: mc-lutova
+  template:
+    metadata:
+      labels:
+        app: mc-lutova
+    spec:
+      containers:
+        - name: mc
+          image: gcr.io/stride-link/lutova:latest
+          resources:
+            requests:
+              cpu: 2
+              memory: 8Gi
+            limits:
+              cpu: 2
+              memory: 8Gi
+          ports:
+            - containerPort: 25565
+              protocol: TCP
+              name: mc-port
+          env:
+            - name: MAX_MEMORY
+              value: "6G"
+          volumeMounts:
+            - mountPath: /data
+              name: data
+        - name: backup
+          image: gcr.io/stride-link/mc-backup:latest
+          securityContext:
+            runAsUser: 1000
+          env:
+            - name: BACKUP_INTERVAL
+              value: "6h"
+            - name: INITIAL_DELAY
+              value: "300"
+            - name: PRUNE_BACKUPS_DAYS
+              value: "7"
+          volumeMounts:
+            - mountPath: /data
+              name: data
+              readOnly: true
+            - mountPath: /backups
+              name: backups
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: data
+        - name: backups
+          persistentVolumeClaim:
+            claimName: backups
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        storageClassName: premium-rwo
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+    - metadata:
+        name: backups
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 50Gi
