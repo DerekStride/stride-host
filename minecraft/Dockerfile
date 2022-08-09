@@ -1,0 +1,18 @@
+FROM itzg/minecraft-server
+
+ENV EULA=true
+ENV VERSION=1.19.1
+ENV SERVER_NAME=Lutova
+ENV DIFFICULTY=normal
+ENV OPS=ugerest
+ENV MAX_WORLD_SIZE=10000
+ENV SNOOPER_ENABLED=false
+ENV SPAWN_PROTECTION=50
+ENV TYPE=FABRIC
+ENV MODRINTH_PROJECTS=lithium,phosphor,chunky,fabric-api,cloth-config
+ENV MODS_FILE=/extras/mods.txt
+ENV DATAPACKS_FILE=/extras/datapacks.txt
+ENV SYNC_SKIP_NEWER_IN_DESTINATION=false
+
+COPY config /config
+COPY extras /extras
