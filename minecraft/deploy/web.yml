@@ -54,11 +54,11 @@ spec:
             runAsUser: 1000
           env:
             - name: BACKUP_INTERVAL
-              value: "6h"
+              value: "8h"
             - name: INITIAL_DELAY
               value: "300"
             - name: PRUNE_BACKUPS_DAYS
-              value: "7"
+              value: "3"
           volumeMounts:
             - mountPath: /data
               name: data
@@ -81,7 +81,7 @@ spec:
           - ReadWriteOnce
         resources:
           requests:
-            storage: 1Gi
+            storage: 15Gi
     - metadata:
         name: backups
       spec:
@@ -89,4 +89,4 @@ spec:
           - ReadWriteOnce
         resources:
           requests:
-            storage: 50Gi
+            storage: 100Gi
