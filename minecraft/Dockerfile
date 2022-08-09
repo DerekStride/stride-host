@@ -14,6 +14,7 @@ ENV MODS_FILE=/extras/mods.txt
 ENV DATAPACKS_FILE=/extras/datapacks.txt
 ENV SYNC_SKIP_NEWER_IN_DESTINATION=false
 ENV SEED="-4969459641151139168"
+ENV USE_AIKAR_FLAGS=true
 
 COPY config /config
 COPY extras /extras
