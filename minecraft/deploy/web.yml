@@ -18,42 +18,26 @@ spec:
     spec:
       containers:
         - name: mc
-          image: itzg/minecraft-server
+          image: gcr.io/stride-link/lutova:latest
+          resources:
+            requests:
+              cpu: 2
+              memory: 8Gi
+            limits:
+              cpu: 2
+              memory: 8Gi
+          ports:
+            - containerPort: 25565
+              protocol: TCP
+              name: mc-port
           env:
-            - name: EULA
-              value: "TRUE"
-            - name: VERSION
-              value: "1.9.1"
-            - name: SERVER_NAME
-              value: "Lutova"
-            - name: DIFFICULTY
-              value: "normal"
-            - name: OPS
-              value: "ugerest"
-            - name: MAX_WORLD_SIZE
-              value: "10000"
-            - name: SNOOPER_ENABLED
-              value: "false"
-            - name: SPAWN_PROTECTION
-              value: "50"
-            - name: TYPE
-              value: "FABRIC"
-            - name: MODRINTH_PROJECTS
-              value: "lithium,phosphor,chunky,fabric-api,cloth-config"
-            - name: MODS_FILE
-              value: "extras/mods.txt"
-            - name: DATAPACKS_FILE
-              value: "extras/datapacks.txt"
             - name: MAX_MEMORY
-              value: "5G"
-            - name: SYNC_SKIP_NEWER_IN_DESTINATION
-              value: "false"
+              value: "6G"
           volumeMounts:
             - mountPath: /data
               name: data
         - name: backup
-          image: mc-backup
-          imagePullPolicy: Never
+          image: gcr.io/stride-link/mc-backup:latest
           securityContext:
             runAsUser: 1000
           env:
@@ -78,15 +62,16 @@ spec:
             claimName: backups
   volumeClaimTemplates:
     - metadata:
-      name: data
+        name: data
       spec:
+        storageClassName: premium-rwo
         accessModes:
           - ReadWriteOnce
         resources:
           requests:
             storage: 1Gi
     - metadata:
-      name: backups
+        name: backups
       spec:
         accessModes:
           - ReadWriteOnce
