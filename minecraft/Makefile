@@ -1,7 +1,6 @@
 LATEST_SHA=$(shell git rev-parse HEAD)
 
 clean:
-	docker container prune -f
 	rm -r data/* data/.fabric data/.modrinth-files.manifest
 
 image:
@@ -18,7 +17,10 @@ release: tag
 list-images:
 	gcloud container images list-tags gcr.io/stride-link/lutova
 
-serve: clean
+prune:
+	docker container prune -f
+
+serve: prune
 	docker run \
 		-e MAX_MEMORY=5G \
 		-v $(PWD)/data:/data \

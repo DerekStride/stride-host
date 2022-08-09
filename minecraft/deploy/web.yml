@@ -30,6 +30,18 @@ spec:
             - containerPort: 25565
               protocol: TCP
               name: mc-port
+          livenessProbe:
+            exec:
+              command:
+                - mc-health
+            initialDelaySeconds: 180
+            periodSeconds: 30
+          readinessProbe:
+            exec:
+              command:
+                - mc-health
+            initialDelaySeconds: 30
+            periodSeconds: 30
           env:
             - name: MAX_MEMORY
               value: "6G"
