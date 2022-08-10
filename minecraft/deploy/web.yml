@@ -50,6 +50,7 @@ spec:
               name: data
         - name: backup
           image: gcr.io/stride-link/mc-backup:latest
+          imagePullPolicy: Never
           resources:
             requests:
               cpu: 100m
@@ -57,8 +58,6 @@ spec:
             limits:
               cpu: 500m
               memory: 500Mi
-          securityContext:
-            runAsUser: 1000
           env:
             - name: BACKUP_INTERVAL
               value: "8h"
