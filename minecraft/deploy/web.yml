@@ -21,7 +21,7 @@ spec:
           image: gcr.io/stride-link/lutova:latest
           resources:
             requests:
-              cpu: 2
+              cpu: 1250m
               memory: 12Gi
             limits:
               cpu: 2
@@ -50,6 +50,13 @@ spec:
               name: data
         - name: backup
           image: gcr.io/stride-link/mc-backup:latest
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 500m
+              memory: 500Mi
           securityContext:
             runAsUser: 1000
           env:
