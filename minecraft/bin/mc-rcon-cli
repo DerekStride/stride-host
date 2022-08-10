@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# bin/mc-rcon-cli chunky progress
+
+kubectl exec pod/mc-lutova-0 -c mc -- rcon-cli $@
