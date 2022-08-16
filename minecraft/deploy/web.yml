@@ -50,7 +50,6 @@ spec:
               name: data
         - name: backup
           image: gcr.io/stride-link/mc-backup:latest
-          imagePullPolicy: Never
           resources:
             requests:
               cpu: 100m
