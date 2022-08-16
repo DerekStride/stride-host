@@ -11,11 +11,11 @@ SIG_HEADER = "HTTP_X_SIGNATURE_ED25519"
 TS_HEADER = "HTTP_X_SIGNATURE_TIMESTAMP"
 
 SCOPE = "https://www.googleapis.com/auth/cloud-platform"
-AUTHORIZER = Google::Auth::ServiceAccountCredentials.from_env(scope: SCOPE)
 
 def mc_scale(body)
   config = Kubeclient::Config.read(".kube/config-v3.yml")
-  token = AUTHORIZER.fetch_access_token!
+  authorizer = Google::Auth::ServiceAccountCredentials.from_env(scope: SCOPE)
+  token = authorizer.fetch_access_token!
   context = config.context
   apps_endpoint = [context.api_endpoint, 'apis/apps'].join('/')
 
