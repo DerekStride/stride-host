@@ -49,7 +49,7 @@ FunctionsFramework.http "mc-scale" do |request|
   signature = sig_bytes.pack("C*")
 
   ts_header = request.get_header(TS_HEADER)
-  message = (ts_header + raw_body).encode(Encoding::UTF_8)
+  message = ts_header + raw_body
 
   begin
     VERIFY_KEY.verify(signature, message)
