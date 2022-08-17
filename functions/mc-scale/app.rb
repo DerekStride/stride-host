@@ -38,7 +38,9 @@ def mc_scale(body)
 
   {
     "type" => 4,
-    "content" => "Turning the server #{scale_dir[:spec][:replicas].zero? ? "off" : "on"}",
+    "data" => {
+      "content" => "Turning the server #{scale_dir[:spec][:replicas].zero? ? "off" : "on"}",
+    },
   }
 end
 
@@ -63,6 +65,8 @@ FunctionsFramework.http "mc-scale" do |request|
 
   {
     "type" => 4,
-    "content" => "Unknown command.",
+    "data" => {
+      "content" => "Unknown command.",
+    },
   }
 end
