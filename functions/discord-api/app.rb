@@ -40,7 +40,7 @@ FunctionsFramework.http "discord-api" do |request|
     client = Google::Cloud::PubSub.new
     topic = client.topic(TOPIC)
 
-    topic.publish(JSON.dump(body["data"]))
+    topic.publish(raw_body)
     scale_up = body.dig("data", "options", 0, "value") == "on"
 
     result = {
