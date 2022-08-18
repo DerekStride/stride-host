@@ -95,7 +95,7 @@ FunctionsFramework.cloud_event "mc-scale" do |event|
       end
 
       pod = kube_client.get_pod("mc-lutova-0", "default")
-      containers = pod.status.containerStatuses.map do |container|
+      containers = (pod.status.containerStatuses || []).map do |container|
         status = +"#{container.name} → started ["
         status << (container.started ? "✓" : "✗")
         status << "] ready ["

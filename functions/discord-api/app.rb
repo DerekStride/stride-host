@@ -41,14 +41,22 @@ FunctionsFramework.http "discord-api" do |request|
     topic = client.topic(TOPIC)
 
     topic.publish(raw_body)
-    scale_up = body.dig("data", "options", 0, "value") == "on"
-
-    result = {
-      "type" => 4,
-      "data" => {
-        "content" => "Turning the server #{scale_up ? "on" : "off"}.",
-      },
-    }
+    subcommand = body.dig("data", "options", 0, "value")
+    if subcommand == "on" || subcommand == "off"
+      result = {
+        "type" => 4,
+        "data" => {
+          "content" => "Turning the server #{subcommand}.",
+        },
+      }
+    elsif subcommand == "status"
+      result = {
+        "type" => 4,
+        "data" => {
+          "content" => "Fetching server status.",
+        },
+      }
+    end
   end
 
   result
