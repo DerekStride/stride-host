@@ -4,9 +4,19 @@ require "googleauth"
 require "pry-byebug" if ENV["PRY"]
 
 SCOPE = "https://www.googleapis.com/auth/cloud-platform"
+DISCORD_API_URL = "https://discord.com/api/v10"
+FOLLOW_UP_PATH_TEMPLATE = "#{DISCORD_API_URL}/webhooks/%{app_id}/%{token}"
 
 def mc_scale(apps_client, replicas:)
   apps_client.patch_stateful_set("mc-lutova", { spec: { replicas: replicas } }, "default")
+end
+
+def send_follow_up(message, app_id:, interaction_token:)
+  Net::HTTP.post(
+    URI(FOLLOW_UP_PATH_TEMPLATE % { app_id: app_id, token: interaction_token }),
+    { "content" => message }.to_json,
+    { "Content-Type" => "application/json" },
+  )
 end
 
 FunctionsFramework.cloud_event "mc-scale" do |event|
