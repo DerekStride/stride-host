@@ -42,16 +42,25 @@ FunctionsFramework.cloud_event "mc-scale" do |event|
   )
 
   event_name = message.dig("data", "name")
-
   if event_name == "mc-scale"
-    if message.dig("data", "options", 0, "value") == "on"
+    subcommand = message.dig("data", "options", 0, "value")
+
+    if subcommand == "on"
       mc_scale(apps_client, replicas: 1)
-    else
+    elsif subcommand == "off"
       mc_scale(apps_client, replicas: 0)
+    elsif subcommand == "status"
+      send_follow_up(
+        "The server is off?",
+        app_id: message["application_id"],
+        interaction_token: message["token"],
+      )
+    else
+      return "Unknown subcommand: #{subcommand}"
     end
 
-    "Scaling mc-lutova"
+    "Handling /#{event_name} #{subcommand}"
   else
-    "Unknown Event: #{event_name}"
+    "Unknown Event: /#{event_name}"
   end
 end
