@@ -51,6 +51,12 @@ def build_kube_client(api_endpoint:, api_version:, ssl_options:, bearer_token:)
   Kubeclient::Client.new(api_endpoint, api_version, ssl_options: ssl_options, auth_options: { bearer_token: bearer_token })
 end
 
+def log(msg, logger:, follow_up_options:)
+  logger.error(msg)
+  return unless follow_up_options
+  send_follow_up(msg, **follow_up_options)
+end
+
 FunctionsFramework.cloud_event "mc-scale" do |event|
   kube_options = kube_client_options
   apps_client = build_apps_client(**kube_options)
@@ -124,17 +130,19 @@ FunctionsFramework.cloud_event "mc-scale" do |event|
     "Unknown Event: /#{event_name}"
   end
 rescue FunctionException => e
-  send_follow_up(e.message, **follow_up_options)
+  log(e.message, logger: logger, follow_up_options: follow_up_options)
 rescue Kubeclient::HttpError => e
-  send_follow_up(<<~MSG, **follow_up_options)
+  log(<<~MSG, logger: logger, follow_up_options: follow_up_options)
     Kubernetes Error: "#{e.class}"
 
     #{e.message}
+    #{e.backtrace}
   MSG
 rescue => e
-  send_follow_up(<<~MSG, **follow_up_options)
+  log(<<~MSG, logger: logger, follow_up_options: follow_up_options)
     Error caught: "#{e.class}"
 
     #{e.message}
+    #{e.backtrace}
   MSG
 end
