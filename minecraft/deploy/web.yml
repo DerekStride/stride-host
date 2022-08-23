@@ -21,10 +21,10 @@ spec:
           image: gcr.io/stride-link/lutova:latest
           resources:
             requests:
-              cpu: 1250m
+              cpu: 1
               memory: 12Gi
             limits:
-              cpu: 2
+              cpu: 1500m
               memory: 12Gi
           ports:
             - containerPort: 25565
@@ -48,35 +48,10 @@ spec:
           volumeMounts:
             - mountPath: /data
               name: data
-        - name: backup
-          image: gcr.io/stride-link/mc-backup:latest
-          resources:
-            requests:
-              cpu: 100m
-              memory: 100Mi
-            limits:
-              cpu: 500m
-              memory: 500Mi
-          env:
-            - name: BACKUP_INTERVAL
-              value: "8h"
-            - name: INITIAL_DELAY
-              value: "300"
-            - name: PRUNE_BACKUPS_DAYS
-              value: "3"
-          volumeMounts:
-            - mountPath: /data
-              name: data
-              readOnly: true
-            - mountPath: /backups
-              name: backups
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: data
-        - name: backups
-          persistentVolumeClaim:
-            claimName: backups
   volumeClaimTemplates:
     - metadata:
         name: data
@@ -87,11 +62,3 @@ spec:
         resources:
           requests:
             storage: 25Gi
-    - metadata:
-        name: backups
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 200Gi

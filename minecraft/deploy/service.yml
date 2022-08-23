@@ -5,11 +5,12 @@ metadata:
   name: web
   annotations:
     networking.gke.io/load-balancer-type: "External"
+    cloud.google.com/network-tier: "Standard"
 spec:
   selector:
     app: mc-lutova
   type: LoadBalancer
-  loadBalancerIP: 34.130.219.116
+  loadBalancerIP: 35.215.50.255
   ports:
   - name: tcp
     port: 8379
