@@ -6,7 +6,7 @@ metadata:
   labels:
     app: mc-lutova
 spec:
-  volumeName: pv-mc-lutova-data
+  volumeName: pv-mc-lutova-data-v2
   resources:
     requests:
       storage: 25Gi
