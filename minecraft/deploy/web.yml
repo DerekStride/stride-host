@@ -21,9 +21,6 @@ spec:
           image: gcr.io/stride-link/lutova:latest
           resources:
             requests:
-              cpu: 1
-              memory: 12Gi
-            limits:
               cpu: 1500m
               memory: 12Gi
           ports:
