@@ -1,9 +1,11 @@
 require "functions_framework"
 require "kubeclient"
 require "googleauth"
+require "google/cloud/pubsub"
 require "pry-byebug" if ENV["PRY"]
 
 SCOPE = "https://www.googleapis.com/auth/cloud-platform"
+TOPIC = "cloudflare-dns-update"
 DISCORD_API_URL = "https://discord.com/api/v10"
 FOLLOW_UP_PATH_TEMPLATE = "#{DISCORD_API_URL}/webhooks/%{app_id}/%{token}"
 
@@ -74,6 +76,10 @@ FunctionsFramework.cloud_event "mc-scale" do |event|
 
     if subcommand == "on"
       mc_scale(apps_client, replicas: 1)
+      client = Google::Cloud::PubSub.new
+      topic = client.topic(TOPIC)
+      topic.publish("mc-lutova")
+
       send_follow_up(<<~MSG, **follow_up_options)
         Scaling server up succeeded.
       MSG
