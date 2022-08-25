@@ -85,6 +85,7 @@ FunctionsFramework.cloud_event "mc-scale" do |event|
       MSG
     elsif subcommand == "off"
       mc_scale(apps_client, replicas: 0)
+      kube_client.delete_service("web-ephemeral", "default")
       send_follow_up(<<~MSG, **follow_up_options)
         Scaling server down succeeded.
       MSG
