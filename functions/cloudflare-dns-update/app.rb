@@ -18,6 +18,8 @@ HEADERS = {
   "Authorization" => "Bearer #{ENV["CLOUDFLARE_TOKEN"]}",
 }
 
+RETRIES = 10
+
 def kube_client_options
   config = Kubeclient::Config.read(ENV["KUBE_CONFIG"])
   authorizer = Google::Auth::ServiceAccountCredentials.from_env(scope: SCOPE)
@@ -41,7 +43,18 @@ FunctionsFramework.cloud_event "cloudflare-dns-update" do |event|
   kube_client = build_kube_client(**kube_options)
   service = kube_client.get_service("web-ephemeral", "default")
 
-  ip = service&.status&.loadBalancer&.ingress&.first&.ip
+  ip = nil
+  count = 0
+
+  loop do
+    break if count >= RETRIES
+    service = kube_client.get_service("web-ephemeral", "default")
+    ip = service&.status&.loadBalancer&.ingress&.first&.ip
+    break if ip
+    sleep(10)
+
+    count += 1
+  end
 
   unless ip
     logger.error("No external IP address for service: web-ephemeral")
