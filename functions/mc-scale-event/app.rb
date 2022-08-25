@@ -99,10 +99,16 @@ FunctionsFramework.cloud_event "mc-scale" do |event|
           #{statefulset.metadata.name} → ready [✗]
         MSG
         return "Handled /#{event_name} #{subcommand}"
-      elsif sts_status.readyReplicas == sts_status.replicas
+      end
+
+      svc = kube_client.get_service("web-ephemeral", "default")
+      ip = svc.status&.loadBalancer&.ingress&.first&.ip
+
+      if sts_status.readyReplicas == sts_status.replicas
         send_follow_up(<<~MSG, **follow_up_options)
           The server is on.
           #{statefulset.metadata.name} → ready [✓]
+          The ip address is #{ip ? "ready: mc.stride.host (#{ip}:8379)" : "Not Ready"}
         MSG
         return "Handled /#{event_name} #{subcommand}"
       end
@@ -127,6 +133,8 @@ FunctionsFramework.cloud_event "mc-scale" do |event|
           containers=[
             #{containers}
           ]
+
+        #{svc.kind}(#{svc.metadata.name}) → #{ip ? "mc.stride.host #{ip}:8379" : "not ready"}
       MSG
     else
       return "Unknown subcommand: #{subcommand}"
