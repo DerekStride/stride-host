@@ -134,7 +134,7 @@ FunctionsFramework.cloud_event "mc-scale" do |event|
             #{containers}
           ]
 
-        #{svc.kind}(#{svc.metadata.name}) → #{ip ? "mc.stride.host #{ip}:8379" : "not ready"}
+        #{svc.kind}(#{svc.metadata.name}) → #{ip ? "mc.stride.host (#{ip}:8379)" : "not ready"}
       MSG
     else
       return "Unknown subcommand: #{subcommand}"
