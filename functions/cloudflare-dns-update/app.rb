@@ -20,6 +20,30 @@ HEADERS = {
 
 RETRIES = 10
 
+SERVICE_META = {
+  name: "web-ephemeral",
+  namespace: "default",
+  annotations: {
+    :"cloud.google.com/network-tier" => "Standard",
+    :"networking.gke.io/load-balancer-type" => "External",
+  },
+}
+
+SERVICE_SPEC = {
+  type: "LoadBalancer",
+  selector: {
+    app: "mc-lutova",
+  },
+  ports: [
+    {
+      name: "tcp",
+      port: 8379,
+      targetPort: 25565,
+      protocol: "TCP",
+    },
+  ],
+}
+
 def kube_client_options
   config = Kubeclient::Config.read(ENV["KUBE_CONFIG"])
   authorizer = Google::Auth::ServiceAccountCredentials.from_env(scope: SCOPE)
@@ -41,19 +65,36 @@ end
 FunctionsFramework.cloud_event "cloudflare-dns-update" do |event|
   kube_options = kube_client_options
   kube_client = build_kube_client(**kube_options)
-  service = kube_client.get_service("web-ephemeral", "default")
+
+  begin
+    kube_client.get_service("web-ephemeral", "default")
+  rescue Kubeclient::ResourceNotFoundError
+    logger.info("service does not exist, creating...")
+    svc = Kubeclient::Resource.new(metadata: SERVICE_META, spec: SERVICE_SPEC)
+    kube_client.create_service(svc)
+    sleep(40)
+  end
+
+  pod = kube_client.get_pod("mc-lutova-0", "default")
+  unless pod.status.phase == "Running"
+    logger.info("pod status is #{pod.status.phase}, likely creating a new node, sleeping some more...")
+    sleep(240)
+  end
 
   ip = nil
   count = 0
 
+  logger.info("fetching ip address...")
   loop do
-    break if count >= RETRIES
     service = kube_client.get_service("web-ephemeral", "default")
     ip = service&.status&.loadBalancer&.ingress&.first&.ip
     break if ip
-    sleep(10)
 
     count += 1
+    break if count >= RETRIES
+
+    logger.info("fetching ip address... retrying again later: #{count} attempt(s).")
+    sleep(20)
   end
 
   unless ip
@@ -70,6 +111,7 @@ FunctionsFramework.cloud_event "cloudflare-dns-update" do |event|
     return "ok"
   end
 
+  logger.info("updating cloudflare...")
   response = Net::HTTP.start(CLOUDFLARE_MC_RECORD.host, CLOUDFLARE_MC_RECORD.port, use_ssl: true) do |http|
     request = Net::HTTP::Put.new(CLOUDFLARE_MC_RECORD, HEADERS)
     request.body = PAYLOAD.merge(content: ip).to_json
@@ -77,7 +119,7 @@ FunctionsFramework.cloud_event "cloudflare-dns-update" do |event|
     http.request(request)
   end
 
-  logger.info(response.inspect)
+  logger.info(response.class.name)
   logger.info(response.body)
 
   "ok"
