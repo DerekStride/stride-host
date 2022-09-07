@@ -8,14 +8,24 @@ VERIFY_KEY = Ed25519::VerifyKey.new([PUB_KEY].pack("H*"))
 
 SIG_HEADER = "HTTP_X_SIGNATURE_ED25519"
 TS_HEADER = "HTTP_X_SIGNATURE_TIMESTAMP"
-TOPIC = "discord-events"
 
+DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE = { "type" => 5 }
 UNKNOWN_COMMAND = {
   "type" => 4,
   "data" => {
     "content" => "Unknown command.",
   },
 }
+
+def response_message(message)
+  { "type" => 4, "data" => { "content" => message } }
+end
+
+def publish(topic, message)
+  client = Google::Cloud::PubSub.new
+  topic = client.topic(topic)
+  topic.publish(message)
+end
 
 FunctionsFramework.http "discord-api" do |request|
   raw_body = request.body.read
@@ -34,30 +44,44 @@ FunctionsFramework.http "discord-api" do |request|
 
   return { "type" => 1 } if body["type"] == 1
 
-  result = UNKNOWN_COMMAND
+  command = body.dig("data", "name")
+  if command == "k8s-utils"
+    subcommand = body.dig("data", "options", 0, "name")
 
-  if body.dig("data", "name") == "mc-scale"
-    client = Google::Cloud::PubSub.new
-    topic = client.topic(TOPIC)
+    return response_message(<<~MSG) unless VALID_SUBCOMMANDS.include?(subcommand)
+      Unknown subcommand: `#{subcommand}`.
+    MSG
 
-    topic.publish(raw_body)
-    subcommand = body.dig("data", "options", 0, "value")
-    if subcommand == "on" || subcommand == "off"
-      result = {
-        "type" => 4,
-        "data" => {
-          "content" => "Turning the server #{subcommand}.",
-        },
-      }
+    if subcommand == "scale-up"
+      publish("k8s-utils-scale-up", raw_body)
+    elsif subcommand == "scale-down"
+      publish("k8s-utils-scale-down", raw_body)
     elsif subcommand == "status"
-      result = {
-        "type" => 4,
-        "data" => {
-          "content" => "Fetching server status.",
-        },
-      }
+      publish("k8s-utils-status", raw_body)
+    end
+
+    return DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE
+  elsif command == "mc-scale"
+    subcommand = body.dig("data", "options", 0, "value")
+
+    if subcommand == "on" || subcommand == "off"
+      publish("discord-events", raw_body)
+
+      return response_message(<<~MSG)
+        The command `/mc-scale` is deprecated use `/k8s-utils` instead.
+
+        Turning the server #{subcommand}.
+      MSG
+    elsif subcommand == "status"
+      publish("discord-events", raw_body)
+
+      return response_message(<<~MSG)
+        The command `/mc-scale` is deprecated use `/k8s-utils` instead.
+
+        Fetching server status.
+      MSG
     end
   end
 
-  result
+  UNKNOWN_COMMAND
 end
